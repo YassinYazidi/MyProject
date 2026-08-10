@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق قائمة المهام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #taskInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #addBtn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #addBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #addBtn:active {
+            transform: translateY(0);
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(-5px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            padding: 8px 15px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #ff3838;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-size: 18px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 قائمة المهام</h1>
+        
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="أضف مهمة جديدة..." />
+            <button id="addBtn">إضافة</button>
+        </div>
+
+        <ul class="task-list" id="taskList"></ul>
+
+        <div class="stats">
+            <span id="totalTasks">المجموع: 0</span>
+            <span id="completedTasks">المكتملة: 0</span>
+        </div>
+    </div>
+
+    <script>
+        // العناصر من DOM
+        const taskInput = document.getElementById('taskInput');
+        const addBtn = document.getElementById('addBtn');
+        const taskList = document.getElementById('taskList');
+        const totalTasksEl = document.getElementById('totalTasks');
+        const completedTasksEl = document.getElementById('completedTasks');
+
+        // تحميل المهام من localStorage
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        // حفظ المهام في localStorage
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(task => task.completed).length;
+            totalTasksEl.textContent = `المجموع: ${total}`;
+            completedTasksEl.textContent = `المكتملة: ${completed}`;
+        }
+
+        // عرض المهام
+        function renderTasks() {
+            taskList.innerHTML = '';
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<li class="empty-message">لا توجد مهام حالياً. أضف مهمة جديدة!</li>';
+                updateStats();
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+                li.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})" />
+                    <span class="task-text">${escapeHtml(task.text)}</span>
+                    <button class="delete-btn" onclick="deleteTask(${index})">حذف</button>
+                `;
+
+                taskList.appendChild(li);
+            });
+
+            updateStats();
+        }
+
+        // إضافة مهمة جديدة
+        function addTask() {
+            const text = taskInput.value.trim();
+            
+            if (text === '') {
+                alert('الرجاء كتابة مهمة!');
+                return;
+            }
+
+            tasks.push({
+                text: text,
+                completed: false
+            });
+
+            taskInput.value = '';
+            saveTasks();
+            renderTasks();
+        }
+
+        // حذف مهمة
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+        }
+
+        // تبديل حالة المهمة
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
+
+        // تنظيف النص لمنع XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // إضافة مهمة عند الضغط على Enter
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // إضافة مهمة عند النقر على الزر
+        addBtn.addEventListener('click', addTask);
+
+        // العرض الأولي
+        renderTasks();
+    </script>
+</body>
+</html>
