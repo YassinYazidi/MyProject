@@ -1,16 +1,13 @@
-## Hi there 👋
+# template-blogger
 
-<!--
-**YassinYazidi/YassinYazidi** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+**AI Future | مستقبل الذكاء** — premium Blogger template, built and verified on a private test blog.
 
-Here are some ideas to get you started:
+## Contents
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+- `aifuture-theme.xml` — the complete Blogger theme (XML): all CSS and JS inline, zero external requests besides Blogger's own platform files and one Google Font.
+
+## Current version
+
+- **v0.9.13** — phases 1–7 complete and verified live, plus the polish rounds: RTL root fix, far-left header actions, rounded-square buttons, social-media icons in the top bar, upgraded footer, centered main menu.
+- Dark + light modes via the `is-dark` class on `<html>`; unified article CSS lives in the template (single source of truth for the articles' `--art-*` variables).
+- Test blog only — the live blog (aifuture-ar.blogspot.com) is switched only on the owner's explicit order.
